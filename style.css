@@ -15,3 +15,57 @@ body {
   top : 0;
   left: 0;
 }
+
+
+#gameOverOverlay {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  border-radius: 10px;
+  color: white;
+  z-index: 9999; /* Set a high z-index value */
+}
+
+#gameOverText {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+#restartButton {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+#restartButton:hover {
+  background-color: #45a049;
+}
+
+/* Score element styling */
+#score {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  color: white;
+  font-size: 18px;
+  font-family: Arial, sans-serif;
+}
+
+/* Highest score element styling */
+#highestScore {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  color: white;
+  font-size: 18px;
+  font-family: Arial, sans-serif;
+}

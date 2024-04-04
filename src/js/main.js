@@ -1,9 +1,27 @@
 import '../../style.css';
 
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { initializeScene } from './Helpers/initializeScene';
 import * as WindowController from './Helpers/windowController';
+import { keys, setIsJumping } from './playerMovement.js';
+import { createPlayer, createGround, createEnemy } from './spawnObjects.js';
+import { Box, boxCollision } from './box.js';
 
+// Declare isGameOver variable
+let isGameOver = false;
+let score = 0;
+let highestScore = localStorage.getItem('highestScore') || 0; // Retrieve highest score from local storage
+
+const scoreElement = document.createElement('div');
+scoreElement.id = 'score';
+document.body.appendChild(scoreElement);
+
+const highestScoreElement = document.createElement('div');
+highestScoreElement.id = 'highestScore';
+document.body.appendChild(highestScoreElement);
+
+// Set initial highest score
+updateHighestScore();
 
 //Set size
 const sizes = {
@@ -11,226 +29,25 @@ const sizes = {
   height: window.innerHeight
 }
 
-//Create renderer
+// Get the canvas element
 const canvas = document.querySelector('.webgl');
-const renderer = new THREE.WebGLRenderer
-(
-  { 
-    canvas: canvas,
-    alpha: true,
-    antialias:true
-  }
-)
-renderer.shadowMap.enabled = true;
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
 
-//Create a scene
-const scene = new THREE.Scene();
+// Initialize the scene
+const { scene, camera, renderer } = initializeScene(canvas);
 
-//Create a camera
-const fov = 75;
-const aspect = sizes.width/sizes.height;
-const near = .1;
-const far = 1000;
-const camera = new THREE.PerspectiveCamera(fov,aspect,near,far);
-camera.position.set(4.61,2.75,8);
-
-//Camera orbit helper
-const orbit = new OrbitControls(camera, renderer.domElement);
-orbit.update();
 
 //Adding window resize ability
 WindowController.setupWindowResizeListener(sizes, camera, renderer, render);
 WindowController.setupFullscreenOnDoubleClick(canvas);
 
-class Box extends THREE.Mesh {
-  constructor({
-    width,
-    height,
-    depth,
-    color = '#00ff00',
-    velocity = {
-      x: 0,
-      y: 0,
-      z: 0
-    },
-    position = {
-      x: 0,
-      y: 0,
-      z: 0
-    },
-    zAcceleration = false
-  }) {
-    super(
-      new THREE.BoxGeometry(width, height, depth),
-      new THREE.MeshStandardMaterial({ color })
-    )
 
-    this.width = width
-    this.height = height
-    this.depth = depth
+// Create player and capture the cube object
+const cube = createPlayer(scene);
 
-    this.position.set(position.x, position.y, position.z)
+// Create ground
+const ground = createGround(scene);
 
-    this.right = this.position.x + this.width / 2
-    this.left = this.position.x - this.width / 2
-
-    this.bottom = this.position.y - this.height / 2
-    this.top = this.position.y + this.height / 2
-
-    this.front = this.position.z + this.depth / 2
-    this.back = this.position.z - this.depth / 2
-
-    this.velocity = velocity
-    this.gravity = -0.002
-
-    this.zAcceleration = zAcceleration
-  }
-
-  updateSides() {
-    this.right = this.position.x + this.width / 2
-    this.left = this.position.x - this.width / 2
-
-    this.bottom = this.position.y - this.height / 2
-    this.top = this.position.y + this.height / 2
-
-    this.front = this.position.z + this.depth / 2
-    this.back = this.position.z - this.depth / 2
-  }
-
-  update(ground) {
-    this.updateSides()
-
-    if (this.zAcceleration) this.velocity.z += 0.0003
-
-    this.position.x += this.velocity.x
-    this.position.z += this.velocity.z
-
-    this.applyGravity(ground)
-  }
-
-  applyGravity(ground) {
-    this.velocity.y += this.gravity
-
-    // this is where we hit the ground
-    if (
-      boxCollision({
-        box1: this,
-        box2: ground
-      })
-    ) {
-      const friction = 0.5
-      this.velocity.y *= friction
-      this.velocity.y = -this.velocity.y
-    } else this.position.y += this.velocity.y
-  }
-}
-
-function boxCollision({ box1, box2 }) {
-  const xCollision = box1.right >= box2.left && box1.left <= box2.right
-  const yCollision =
-    box1.bottom + box1.velocity.y <= box2.top && box1.top >= box2.bottom
-  const zCollision = box1.front >= box2.back && box1.back <= box2.front
-
-  return xCollision && yCollision && zCollision
-}
-
-const cube = new Box({
-  width: 1,
-  height: 1,
-  depth: 1,
-  velocity: {
-    x: 0,
-    y: -0.01,
-    z: 0
-  }
-})
-cube.castShadow = true
-scene.add(cube)
-
-const ground = new Box({
-  width: 10,
-  height: 0.5,
-  depth: 50,
-  color: '#0369a1',
-  position: {
-    x: 0,
-    y: -2,
-    z: 0
-  }
-})
-
-ground.receiveShadow = true
-scene.add(ground)
-
-const light = new THREE.DirectionalLight(0xffffff, 2)
-light.position.y = 3
-light.position.z = 1
-light.castShadow = true
-scene.add(light)
-
-scene.add(new THREE.AmbientLight(0xffffff, 0.5))
-
-camera.position.z = 5
-console.log(ground.top)
-console.log(cube.bottom)
-
-const keys = {
-  a: {
-    pressed: false
-  },
-  d: {
-    pressed: false
-  },
-  s: {
-    pressed: false
-  },
-  w: {
-    pressed: false
-  }
-}
-
-window.addEventListener('keydown', (event) => {
-  switch (event.code) {
-    case 'KeyA':
-      keys.a.pressed = true
-      break
-    case 'KeyD':
-      keys.d.pressed = true
-      break
-    case 'KeyS':
-      keys.s.pressed = true
-      break
-    case 'KeyW':
-      keys.w.pressed = true
-      break
-    case 'Space':
-      cube.velocity.y = 0.08
-      break
-  }
-})
-
-window.addEventListener('keyup', (event) => {
-  switch (event.code) {
-    case 'KeyA':
-      keys.a.pressed = false
-      break
-    case 'KeyD':
-      keys.d.pressed = false
-      break
-    case 'KeyS':
-      keys.s.pressed = false
-      break
-    case 'KeyW':
-      keys.w.pressed = false
-      break
-  }
-})
-
-
-
-const enemies = []
+const enemies = [];
 
 let frames = 0
 let spawnRate = 200
@@ -256,6 +73,7 @@ function animate() {
         box2: enemy
       })
     ) {
+      gameOver();
       cancelAnimationFrame(animationId)
     }
   })
@@ -263,36 +81,51 @@ function animate() {
   if (frames % spawnRate === 0) {
     if (spawnRate > 20) spawnRate -= 20
 
-    const enemy = new Box({
-      width: 1,
-      height: 1,
-      depth: 1,
-      position: {
-        x: (Math.random() - 0.5) * 10,
-        y: 0,
-        z: -20
-      },
-      velocity: {
-        x: 0,
-        y: 0,
-        z: 0.005
-      },
-      color: 'red',
-      zAcceleration: true
-    })
-    enemy.castShadow = true
-    scene.add(enemy)
-    enemies.push(enemy)
+    createEnemy(scene, enemies);
   }
 
-  frames++
-  // cube.position.y += -0.01
-  // cube.rotation.x += 0.01
-  // cube.rotation.y += 0.01
+  console.log('Camera Position:', camera.position);
+  console.log('Camera Rotation:', camera.rotation);
+
+  if (cube.position.y < -0.8065312500000301    ) {
+    setIsJumping(false);
+  }
+
+  frames++;;
+  score++;
+  updateScore();
 }
 animate()
 
 // Render scene function
 function render() {
   renderer.render(scene, camera);
+}
+
+function gameOver() {
+  isGameOver = true;
+  showGameOver();
+  updateHighestScore();
+}
+
+function showGameOver() {
+  const gameOverOverlay = document.getElementById('gameOverOverlay');
+  gameOverOverlay.style.display = 'block';
+}
+
+const restartButton = document.getElementById('restartButton');
+restartButton.addEventListener('click', () => {
+  location.reload(); // Reload the page to restart the game
+});
+
+function updateScore() {
+  scoreElement.textContent = `Score: ${score}`;
+}
+
+function updateHighestScore() {
+  if (score > highestScore) {
+    highestScore = score+1;
+    localStorage.setItem('highestScore', highestScore); // Save highest score to local storage
+  }
+  highestScoreElement.textContent = `Highest Score: ${highestScore}`;
 }
