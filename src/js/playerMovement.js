@@ -93,32 +93,40 @@ const handleTouchEnd = (event) => {
 };
 
 const handleTouchMove = (event) => {
-    if (isTouching) {
-        const touchEndX = event.touches[0].clientX;
-        const touchEndY = event.touches[0].clientY;
-        const dx = touchEndX - touchStartX;
-        const dy = touchEndY - touchStartY;
+  if (isTouching) {
+      const touchEndX = event.touches[0].clientX;
+      const touchEndY = event.touches[0].clientY;
+      const dx = touchEndX - touchStartX;
+      const dy = touchEndY - touchStartY;
 
-        if (Math.abs(dx) > Math.abs(dy)) {
-            // Horizontal swipe
-            if (dx > 0) {
-                // Swipe right
-                keys.d.pressed = true;
-            } else {
-                // Swipe left
-                keys.a.pressed = true;
-            }
-        } else {
-            // Vertical swipe
-            if (dy > 0) {
-                // Swipe down
-                keys.s.pressed = true;
-            } else {
-                // Swipe up
-                keys.w.pressed = true;
-            }
-        }
-    }
+      if (Math.abs(dx) > Math.abs(dy)) {
+          // Horizontal swipe detected
+          // Reset movement keys
+          keys.a.pressed = false;
+          keys.d.pressed = false;
+
+          if (dx > 0) {
+              // Swipe right
+              keys.d.pressed = true;
+          } else {
+              // Swipe left
+              keys.a.pressed = true;
+          }
+      } else {
+          // Vertical swipe detected
+          // Reset movement keys
+          keys.w.pressed = false;
+          keys.s.pressed = false;
+
+          if (dy > 0) {
+              // Swipe down
+              keys.s.pressed = true;
+          } else {
+              // Swipe up
+              keys.w.pressed = true;
+          }
+      }
+  }
 };
 
 window.addEventListener('touchstart', handleTouchStart);

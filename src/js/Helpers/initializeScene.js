@@ -24,7 +24,7 @@ export function initializeScene(canvas) {
   camera.position.set(-0.000050249377494495284, 4, 4.301789273496814);
 
   // Set camera rotation
-  camera.rotation.set(-0.7, 0, -0.000006271470316379076);
+  camera.rotation.set(-0.3, 0, -0.000006271470316379076);
   camera.rotation.order = 'XYZ';
 
   // Camera orbit helper
@@ -38,7 +38,7 @@ export function initializeScene(canvas) {
   light.castShadow = true;
   scene.add(light);
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+  scene.add(new THREE.AmbientLight(0xffffff, 2));
 
   camera.position.z = 5;
 

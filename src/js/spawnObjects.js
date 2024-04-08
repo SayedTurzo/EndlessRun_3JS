@@ -6,6 +6,7 @@ export function createPlayer(scene) {
     width: 1,
     height: 1,
     depth: 1,
+    color: '#FFFF00',
     velocity: {
       x: 0,
       y: -0.01,
@@ -23,7 +24,7 @@ export function createGround(scene) {
     width: 10,
     height: 0.5,
     depth: 50,
-    color: '#0369a1',
+    color: '#87CEFA',
     position: {
       x: 0,
       y: -2,

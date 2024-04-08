@@ -6,6 +6,8 @@ import * as WindowController from './Helpers/windowController';
 import { keys, setIsJumping } from './playerMovement.js';
 import { createPlayer, createGround, createEnemy } from './spawnObjects.js';
 import { Box, boxCollision } from './box.js';
+import { setSkySphere } from './Helpers/SkysphereHelper.js';
+import { loadBackgroundMusic } from './Helpers/audioLoader.js';
 
 // Declare isGameOver variable
 let isGameOver = false;
@@ -35,6 +37,10 @@ const canvas = document.querySelector('.webgl');
 // Initialize the scene
 const { scene, camera, renderer } = initializeScene(canvas);
 
+const imagePath = '/Sky/puresky.hdr';
+setSkySphere(scene, imagePath);
+
+loadBackgroundMusic(camera);
 
 //Adding window resize ability
 WindowController.setupWindowResizeListener(sizes, camera, renderer, render);
@@ -83,9 +89,6 @@ function animate() {
 
     createEnemy(scene, enemies);
   }
-
-  console.log('Camera Position:', camera.position);
-  console.log('Camera Rotation:', camera.rotation);
 
   if (cube.position.y < -0.8065312500000301    ) {
     setIsJumping(false);
